@@ -1,0 +1,55 @@
+{
+  "name": "fak-bridge-desktop",
+  "version": "1.0.0",
+  "description": "FAK Bridge — Ultra-fast cross-device sync (PC Companion)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "pack": "electron-builder --dir"
+  },
+  "keywords": ["clipboard", "sync", "airdrop", "transfer", "wifi"],
+  "author": "FAK Bridge",
+  "license": "MIT",
+  "dependencies": {
+    "clipboardy": "^4.0.0",
+    "express": "^5.1.0",
+    "ip": "^2.0.1",
+    "multer": "^1.4.5-lts.2",
+    "open": "^10.1.2",
+    "qrcode": "^1.5.4",
+    "ws": "^8.18.2"
+  },
+  "devDependencies": {
+    "electron": "^35.0.1",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.fakbridge.desktop",
+    "productName": "FAK Bridge",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "FAK Bridge"
+    },
+    "files": [
+      "main.js",
+      "ui.html",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    }
+  }
+}

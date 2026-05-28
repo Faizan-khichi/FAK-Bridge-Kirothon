@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>FAK Bridge</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg-app: #0E0E10;
+  --bg-surface: #18181B;
+  --bg-elevated: #1F1F23;
+  --bg-hover: #252529;
+  --border: rgba(255,255,255,0.05);
+  --border-hover: rgba(255,255,255,0.1);
+  --text-primary: rgba(255,255,255,0.92);
+  --text-secondary: rgba(255,255,255,0.55);
+  --text-muted: rgba(255,255,255,0.25);
+  --accent: #00F2FE;
+  --accent-end: #4FACFE;
+  --accent-glow: rgba(0,242,254,0.12);
+  --success: #00E676;
+  --danger: #FF3B5C;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+html, body {
+  font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+  cursor: default;
+  -webkit-font-smoothing: antialiased;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+.app {
+  background: var(--bg-app);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  box-shadow: 0 32px 100px rgba(0,0,0,0.95);
+  height: 640px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.header {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+}
+.header-logo svg { width: 26px; height: 26px; }
+.header-info { flex: 1; }
+.header-info h1 { font-size: 13px; font-weight: 700; }
+.header-info p { font-size: 10px; color: var(--text-secondary); margin-top: 1px; }
+.server-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg-elevated);
+  cursor: pointer; transition: all 0.2s;
+}
+.server-btn:hover { background: var(--bg-hover); }
+.server-btn.running { border-color: rgba(0,230,118,0.3); }
+.server-btn.stopped { border-color: rgba(255,59,92,0.3); }
+.server-btn .dot { width: 6px; height: 6px; border-radius: 50%; }
+.server-btn.running .dot { background: var(--success); box-shadow: 0 0 5px rgba(0,230,118,0.5); }
+.server-btn.stopped .dot { background: var(--danger); }
+.server-btn span { font-size: 10px; font-weight: 600; color: var(--text-secondary); }
+.tabs { display: flex; padding: 0 12px; background: var(--bg-app); border-bottom: 1px solid var(--border); }
+.tab { padding: 9px 12px; font-size: 11px; font-weight: 600; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab:hover:not(.active) { color: var(--text-primary); }
+.content { flex: 1; overflow-y: auto; padding: 12px; }
+.card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
+.card:hover { border-color: var(--border-hover); }
+.card-label { font-size: 9px; font-weight: 600; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+.ip-display { text-align: center; padding: 6px 0; }
+.ip-value { font-size: 20px; font-weight: 700; font-family: 'Cascadia Code', 'Consolas', monospace; background: linear-gradient(135deg, var(--accent), var(--accent-end)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.ip-hint { font-size: 10px; color: var(--text-secondary); margin-top: 4px; }
+.qr-container { display: flex; justify-content: center; padding: 14px; background: var(--bg-elevated); border-radius: var(--radius-sm); border: 1px solid var(--border); box-shadow: 0 0 20px var(--accent-glow); margin-top: 10px; }
+.port-row { display: flex; align-items: center; gap: 6px; margin-top: 10px; justify-content: center; }
+.port-row label { font-size: 10px; color: var(--text-secondary); }
+.port-row input { width: 58px; background: var(--bg-app); border: 1px solid var(--border); border-radius: 5px; padding: 5px 6px; color: var(--text-primary); font-size: 11px; font-family: monospace; text-align: center; outline: none; cursor: text; user-select: text; }
+.port-row input:focus { border-color: var(--accent); }
+.port-row button { background: linear-gradient(135deg, var(--accent), var(--accent-end)); border: none; border-radius: 5px; padding: 5px 10px; color: #000; font-size: 9px; font-weight: 700; cursor: pointer; }
+
+/* Send to phone button */
+.send-phone-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-end)); border: none; border-radius: var(--radius-sm); color: #000; font-size: 11px; font-weight: 700; cursor: pointer; margin-bottom: 10px; transition: opacity 0.2s; }
+.send-phone-btn:hover { opacity: 0.85; }
+.send-phone-btn svg { width: 14px; height: 14px; }
+
+/* File items */
+.file-item { display: flex; align-items: center; padding: 8px 10px; border-radius: var(--radius-sm); margin-bottom: 3px; cursor: pointer; transition: all 0.15s; border: 1px solid transparent; }
+.file-item:hover { background: var(--bg-elevated); border-color: var(--border-hover); }
+.file-icon-box { width: 32px; height: 32px; border-radius: 7px; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; margin-right: 9px; flex-shrink: 0; }
+.file-icon-box svg { width: 15px; height: 15px; }
+.file-icon-box.img { background: rgba(0,242,254,0.08); }
+.file-icon-box.vid { background: rgba(168,85,247,0.1); }
+.file-icon-box.zip { background: rgba(251,191,36,0.1); }
+.file-icon-box.doc { background: rgba(59,130,246,0.1); }
+.file-info { flex: 1; min-width: 0; }
+.file-name { font-size: 11px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-meta { font-size: 9px; color: var(--text-secondary); margin-top: 1px; }
+.file-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+.file-item:hover .file-actions { opacity: 1; }
+.file-act-btn { width: 24px; height: 24px; border-radius: 5px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; background: transparent; }
+.file-act-btn:hover { background: var(--bg-hover); }
+.file-act-btn.del:hover { background: rgba(255,59,92,0.15); }
+.file-act-btn svg { width: 12px; height: 12px; }
+
+.action-btn { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; padding: 9px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--accent); font-size: 10px; font-weight: 600; cursor: pointer; margin-top: 6px; transition: all 0.15s; }
+.action-btn:hover { background: var(--bg-elevated); border-color: rgba(0,242,254,0.2); }
+.action-btn svg { width: 13px; height: 13px; }
+
+.device-item { display: flex; align-items: center; padding: 10px; border-radius: var(--radius-sm); margin-bottom: 3px; transition: all 0.15s; border: 1px solid transparent; }
+.device-item:hover { background: var(--bg-elevated); border-color: var(--border-hover); }
+.device-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); margin-right: 10px; box-shadow: 0 0 5px rgba(0,230,118,0.4); }
+.device-name { font-size: 11px; font-weight: 600; }
+.device-detail { font-size: 9px; color: var(--text-secondary); margin-top: 1px; }
+.empty { text-align: center; padding: 36px 14px; color: var(--text-secondary); font-size: 11px; line-height: 1.6; }
+.empty svg { width: 28px; height: 28px; margin-bottom: 8px; opacity: 0.3; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-logo">
+      <svg viewBox="0 0 28 28" fill="none"><circle cx="10" cy="14" r="8.5" stroke="url(#hg)" stroke-width="1.4" fill="none" opacity="0.7"/><circle cx="18" cy="14" r="8.5" stroke="url(#hg)" stroke-width="1.4" fill="none" opacity="0.7"/><line x1="10" y1="14" x2="18" y2="14" stroke="url(#hg)" stroke-width="2.2" stroke-linecap="round"/><defs><linearGradient id="hg" x1="0" y1="0" x2="28" y2="28"><stop offset="0%" stop-color="#00F2FE"/><stop offset="100%" stop-color="#4FACFE"/></linearGradient></defs></svg>
+    </div>
+    <div class="header-info"><h1>FAK Bridge</h1><p id="headerStatus">Starting...</p></div>
+    <div class="server-btn running" id="serverBtn" onclick="toggleServer()"><div class="dot"></div><span id="serverLabel">Running</span></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="connect" onclick="switchTab('connect')">Connect</div>
+    <div class="tab" data-tab="files" onclick="switchTab('files')">Files</div>
+    <div class="tab" data-tab="devices" onclick="switchTab('devices')">Devices</div>
+  </div>
+  <div class="content" id="tab-connect">
+    <div class="card"><div class="card-label">Server Address</div><div class="ip-display"><div class="ip-value" id="ipAddr">...</div><div class="ip-hint">Enter this IP in the mobile app</div></div></div>
+    <div class="card"><div class="card-label">Quick Connect — Scan QR</div><div class="qr-container"><canvas id="qrCanvas"></canvas></div></div>
+    <div class="card"><div class="card-label">Port</div><div class="port-row"><label>Port:</label><input type="number" id="portInput" value="8080"><button onclick="changePort()">APPLY</button></div></div>
+  </div>
+  <div class="content" id="tab-files" style="display:none;">
+    <button class="send-phone-btn" onclick="sendToPhone()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      Send File to Phone
+    </button>
+    <div id="filesList"></div>
+    <div class="action-btn" onclick="openFolder()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Open Folder</div>
+  </div>
+  <div class="content" id="tab-devices" style="display:none;"><div id="devicesList"></div></div>
+</div>
+<script>
+const { ipcRenderer, shell } = require('electron');
+const QRCode = require('qrcode');
+const path = require('path');
+
+let currentInfo = {};
+let serverRunning = true;
+
+async function loadInfo() {
+  currentInfo = await ipcRenderer.invoke('get-info');
+  document.getElementById('ipAddr').textContent = `${currentInfo.ip}:${currentInfo.port}`;
+  document.getElementById('headerStatus').textContent = `Listening on ${currentInfo.ip}:${currentInfo.port}`;
+  document.getElementById('portInput').value = currentInfo.port;
+  QRCode.toCanvas(document.getElementById('qrCanvas'), `fakbridge://${currentInfo.ip}:${currentInfo.port}`, { width: 130, margin: 2, color: { dark: '#00F2FE', light: '#1F1F23' } });
+  renderFiles();
+  renderDevices();
+}
+
+function getFileType(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  if (['jpg','jpeg','png','gif','webp','svg','bmp','ico'].includes(ext)) return 'img';
+  if (['mp4','mov','avi','mkv','webm','flv','wmv'].includes(ext)) return 'vid';
+  if (['zip','rar','7z','tar','gz','bz2'].includes(ext)) return 'zip';
+  if (['pdf','doc','docx','txt','xls','xlsx','ppt','pptx','csv'].includes(ext)) return 'doc';
+  return 'file';
+}
+
+function getFileIcon(type) {
+  if (type === 'img') return '<svg viewBox="0 0 24 24" fill="none" stroke="#00F2FE" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
+  if (type === 'vid') return '<svg viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>';
+  if (type === 'zip') return '<svg viewBox="0 0 24 24" fill="none" stroke="#FBBF24" stroke-width="1.5"><path d="M21 8v13H3V3h13l5 5z"/><path d="M14 3v5h5"/><path d="M10 12h4M10 15h4"/></svg>';
+  if (type === 'doc') return '<svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>';
+}
+
+function cleanFileName(name) {
+  // Remove timestamp prefix and decode URI encoding
+  let clean = decodeURIComponent(name);
+  // Remove leading timestamp (e.g. 1779938729378_)
+  clean = clean.replace(/^\d{10,16}_/, '');
+  return clean;
+}
+
+function renderFiles() {
+  const list = document.getElementById('filesList');
+  if (!currentInfo.files || currentInfo.files.length === 0) {
+    list.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg><br>No files received yet</div>';
+    return;
+  }
+  list.innerHTML = currentInfo.files.map(f => {
+    const type = getFileType(f.name);
+    const icon = getFileIcon(type);
+    const displayName = cleanFileName(f.name);
+    const size = formatSize(f.size);
+    const date = new Date(f.date).toLocaleString();
+    const escapedPath = f.path.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return `<div class="file-item">
+      <div class="file-icon-box ${type}" onclick="openFile('${escapedPath}')">${icon}</div>
+      <div class="file-info" onclick="openFile('${escapedPath}')">
+        <div class="file-name">${displayName}</div>
+        <div class="file-meta">${size} · ${date}</div>
+      </div>
+      <div class="file-actions">
+        <button class="file-act-btn" onclick="openFile('${escapedPath}')" title="Open"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
+        <button class="file-act-btn del" onclick="deleteFile('${escapedPath}')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderDevices() {
+  const list = document.getElementById('devicesList');
+  if (!currentInfo.clients || currentInfo.clients.length === 0) {
+    list.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg><br>No devices connected</div>';
+    return;
+  }
+  list.innerHTML = currentInfo.clients.map(c => `<div class="device-item"><div class="device-dot"></div><div><div class="device-name">${c.name}</div><div class="device-detail">${c.ip} · Connected ${new Date(c.connectedAt).toLocaleTimeString()}</div></div></div>`).join('');
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
+  return (bytes / 1073741824).toFixed(2) + ' GB';
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
+  document.getElementById(`tab-${tab}`).style.display = 'block';
+  loadInfo();
+}
+
+function openFile(p) { ipcRenderer.invoke('open-file', p); }
+function openFolder() { ipcRenderer.invoke('open-folder'); }
+function deleteFile(p) { ipcRenderer.invoke('delete-file', p).then(() => loadInfo()); }
+function sendToPhone() { ipcRenderer.invoke('send-to-phone-dialog').then(() => loadInfo()); }
+async function changePort() { await ipcRenderer.invoke('change-port', document.getElementById('portInput').value); loadInfo(); }
+async function toggleServer() {
+  const r = await ipcRenderer.invoke('toggle-server');
+  serverRunning = r.running;
+  const btn = document.getElementById('serverBtn');
+  btn.className = `server-btn ${serverRunning ? 'running' : 'stopped'}`;
+  document.getElementById('serverLabel').textContent = serverRunning ? 'Running' : 'Stopped';
+  document.getElementById('headerStatus').textContent = serverRunning ? `Listening on ${currentInfo.ip}:${currentInfo.port}` : 'Server stopped';
+}
+
+ipcRenderer.on('file-received', () => loadInfo());
+ipcRenderer.on('clients-updated', () => loadInfo());
+loadInfo();
+setInterval(loadInfo, 5000);
+</script>
+</body>
+</html>

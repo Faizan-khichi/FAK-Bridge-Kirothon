@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.apk
+*.exe
+*.7z
+.gradle/
+build/
+*.log
+platform-tools/
+platform-tools.zip
+__pycache__/
+*.pyc
+vps_*.py
+download_*.py
+check_*.py
+cleanup_*.py
