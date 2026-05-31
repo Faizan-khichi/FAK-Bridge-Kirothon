@@ -2,6 +2,8 @@
 
 ---
 # VIDEO LINK [https://faklabhost.aisquadx.com/cdn/vid201hj]
+<details>
+<summary><b>📖 Read More</b></summary>
 ## 1. THE HOOK (0:00 - 0:30)
 
 **[Show split screen: phone on left, PC on right]**
