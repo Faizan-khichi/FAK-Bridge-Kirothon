@@ -1,7 +1,7 @@
 # FAK Bridge — Presentation Script (2-4 min Demo Video)
 
 ---
-
+# VIDEO LINK [https://faklabhost.aisquadx.com/cdn/vid201hj]
 ## 1. THE HOOK (0:00 - 0:30)
 
 **[Show split screen: phone on left, PC on right]**
